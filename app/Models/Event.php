@@ -16,10 +16,20 @@ class Event extends Model
         'categorie',
         'user_id',
         'max_participants',
-        // 'image_path',
+        'image_path',
     ];
 
     public function user() {
         return $this->belongsTo(User::class);
+    }
+    public function rsvps() {
+        return $this->hasMany(RSVP::class);
+    }
+    
+    // public function participants() {
+    //     return $this->belongsToMany(User::class, 'rsvps');
+    // }
+    public function comments(){
+        return $this->hasMany(Comment::class);
     }
 }

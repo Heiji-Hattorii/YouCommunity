@@ -5,9 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Laravel</title>
-
-    <!-- Fonts -->
+    <title>YouCommunity</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,12 +17,15 @@
     <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
         <nav class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="flex justify-between h-16 flex items-center">
+            <div class="flex justify-between h-[14vh] flex items-center">
 
                 <div class="flex-shrink-0">
-                    <a href="/" class="flex items-center justify-start">
-                        <img class="h-8 w-auto" src="path_to_your_image.jpg" alt="YouCommunity">
+                    <div class="w-[280px] h-[14vh] ">
+                        <a href="/" class="flex items-center justify-start  w-full h-full">
+                        <img class="inset-0 w-full h-full object-[100%100%]" src="{{ asset('images/logo.webp') }}" alt="YouCommunity">
                     </a>
+                    </div>
+                    
                 </div>
 
                 @if (Route::has('login'))
@@ -70,7 +71,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="relative">
                         <i class="fas fa-map-marker-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" placeholder="Ville ou code postal"
+                        <input type="text" placeholder="Ville"
                             class="!rounded-button w-full pl-10 pr-3 py-2 border-gray-300 focus:ring-custom focus:border-custom">
                     </div>
                     <div class="relative">
@@ -98,26 +99,47 @@
         <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-8">Événements à la une</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            @foreach($events as $event)
+
                 <div class="bg-white shadow-sm !rounded-button overflow-hidden"> <img
-                        src="{{ asset('images/photo1.webp') }}" alt="Concert en plein air"
+                        src="{{ asset($event->image_path) }}" alt="Concert en plein air"
                         class="w-full h-48 object-cover">
                     <div class="p-4">
-                        <h3 class="font-semibold text-lg mb-2">Festival de Jazz</h3>
+                        <h3 class="font-semibold text-lg mb-2"><a href="{{ route('events.show', $event->id) }}" class="text-blue-500"> {{ $event->titre }}</a></h3>
                         <p class="text-gray-600 text-sm mb-4">
                             <i class="fas fa-calendar-alt mr-2"></i>
-                            25 juin 2024
+                            {{ $event->date_heure }}
                         </p>
                         <div class="flex items-center justify-between"> <span class="text-sm text-gray-500">
                                 <i class="fas fa-users mr-1"></i>
-                                156 participants
+                                5/{{ $event->max_participants }} participants
                             </span>
-                            <button
-                                class="!rounded-button text-custom hover:bg-custom/10 px-3 py-1 text-sm font-medium">
-                                S'inscrire
-                            </button>
+
+                            @if(auth()->check())
+                            @if($event->rsvps->contains('user_id', auth()->id()))
+                            <form action="{{ route('rsvp.destroy', $event->id) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="!rounded-button text-custom hover:bg-custom/10 px-3 py-1 text-sm font-medium">
+                                    Se desinscrire
+                                </button>
+                            </form>
+
+                            @else
+                            <form action="{{ route('rsvp.store', $event->id) }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                    class="!rounded-button text-custom hover:bg-custom/10 px-3 py-1 text-sm font-medium">
+                                    S'inscrire
+                                </button>
+                            </form>
+                            @endif
+                            @endif
                         </div>
                     </div>
                 </div>
+                @endforeach
 
             </div>
         </div>

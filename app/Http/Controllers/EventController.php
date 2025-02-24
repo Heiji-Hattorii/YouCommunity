@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\Event;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -15,9 +16,23 @@ class EventController extends Controller
     public function index()
     {
         //
-        $events = Event::orderBy('date_heure', 'asc')->paginate(10);
+        $events = Event::orderBy('date_heure', 'asc')->paginate(9);
         return view('events.index', compact('events'));
     }
+
+    public function myevents()
+{
+    $events = auth()->user()->events()->orderBy('date_heure', 'asc')->paginate(9);
+    return view('events.index', compact('events'));
+}
+
+    public function inhome()
+    {
+        //
+        $events = Event::orderBy('date_heure', 'asc')->paginate(9);
+        return view('welcome', compact('events'));
+    }
+    
 
     /**
      * Show the form for creating a new resource.
@@ -47,14 +62,16 @@ class EventController extends Controller
             'date_heure' => 'required|date',
             'categorie' => 'required|string',
             'max_participants' => 'required|integer|min:1',
-            // 'image_path'=>'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'image_path'=>'nullable|image|mimes:jpg,jpeg,png,gif',
         ]);
 
-        // $imagePath = null;
-        // if ($request->hasFile('image_path')) {
-        //     // Déplacer l'image dans le dossier public/uploads et obtenir son chemin
-        //     $imagePath = $request->file('image_path')->store('uploads', 'public');
-        // }
+        $imagePath = null;
+        if ($request->hasFile('image_path')) {
+            $file = $request->file('image_path');
+            $imageName = time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $imageName);
+            $imagePath = 'uploads/' . $imageName;
+        }
 
         Event::create([
             'titre' => $request->titre,
@@ -64,7 +81,7 @@ class EventController extends Controller
             'categorie' => $request->categorie,
             'user_id' => Auth::id(),
             'max_participants' => $request->max_participants,
-            // 'image_path' => $imagePath,         
+            'image_path' => $imagePath,         
         ]);
 
         return redirect()->route('events.index')->with('success', 'Événement créé avec succès.');
@@ -103,8 +120,10 @@ class EventController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Event $event)
+    public function update(Request $request, $id)
     {
+        $event = Event::findOrFail($id);
+
         //
         $request->validate([
             'titre' => 'required|string|max:255',
@@ -113,10 +132,31 @@ class EventController extends Controller
             'date_heure' => 'required|date',
             'categorie' => 'required|string',
             'max_participants' => 'required|integer|min:1',
+            'image_path'=>'nullable|image|mimes:jpg,jpeg,png,gif',
             
         ]);
+        $imagePath = $event->image_path; 
+        if ($request->hasFile('image_path')) {
+            if (file_exists(public_path($imagePath))) {
+                unlink(public_path($imagePath));
+            }
+    
+            $file = $request->file('image_path');
+            $imageName = time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $imageName);
+            $imagePath = 'uploads/' . $imageName;
+        }
+    
+        $event->update([
+            'titre' => $request->titre,
+            'description' => $request->description,
+            'lieu' => $request->lieu,
+            'date_heure' => $request->date_heure,
+            'categorie' => $request->categorie,
+            'max_participants' => $request->max_participants,
+            'image_path' => $imagePath,
+        ]);
 
-        $event->update($request->all());
 
         return redirect()->route('events.index')->with('success', 'Événement mis à jour.');
     }

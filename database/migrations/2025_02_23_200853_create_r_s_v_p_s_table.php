@@ -13,18 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('events', function (Blueprint $table) {
+        Schema::create('rsvps', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
-            $table->string('titre');
-            $table->text('description');
-            $table->string('lieu');
-            $table->dateTime('date_heure');
-            $table->string('categorie');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->integer('max_participants');
-            $table->string('image_path')->nullable();
-
+            $table->foreignId('event_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
@@ -35,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('events');
-    }
+            Schema::dropIfExists('rsvps');
+           }
 };
